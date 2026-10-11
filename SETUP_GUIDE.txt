@@ -4,6 +4,8 @@ PS2 GUITAR FOR ROCK BAND 4 (PS4) - SETUP GUIDE
 WHAT IS IN THIS ZIP
 - PS4_Files\data\GoldHEN\plugins\OrbisInstrumentalizer.prx : the plugin. Its folder path
   is exactly where it goes on the PS4: /data/GoldHEN/plugins/
+- PS4_Files\data\GoldHEN\plugins.ini : plugin list for Rock Band 4 (RB4DX + this plugin).
+  Only use it if you have no plugins.ini yet (see Part A, step 6).
 - Mapping_Tool\RUN_ME.bat        : the PC mapping tool (Part B). It creates guitar_map.ini
 - Examples_Do_Not_Copy\          : examples only. Do not put these on the PS4.
 - Source\                        : source code and build script
@@ -32,11 +34,17 @@ PART A - INSTALL THE PLUGIN
 5. Drag OrbisInstrumentalizer.prx from PS4_Files\data\GoldHEN\plugins\ in
    this download into that folder. Do not rename it.
    If a file with that name already exists, overwrite it.
-6. Go up one folder to /data/GoldHEN/ and open plugins.ini (right-click >
-   View/Edit). Under the line [CUSA02084] there must be this line:
-      /data/GoldHEN/plugins/OrbisInstrumentalizer.prx
-   If it is missing, add it on its own line under [CUSA02084] and save.
-   (Keep a copy of plugins.ini first in case you make a mistake.)
+6. Go up one folder to /data/GoldHEN/.
+   - If there is NO plugins.ini there: drag plugins.ini from
+     PS4_Files\data\GoldHEN\ in this download into that folder. Done.
+   - If there IS already a plugins.ini: do NOT overwrite it (you would lose
+     your other plugins). First download a backup copy. Then open it
+     (right-click > View/Edit) and make sure under [CUSA02084] these lines exist
+     (add any that are missing, each on its own line):
+        /data/GoldHEN/plugins/RB4DX-Plugin.prx
+        /data/GoldHEN/plugins/OrbisInstrumentalizer.prx
+   The RB4DX line only does something if you have RB4DX installed. If you
+   don't use RB4DX, leave that line out.
 7. Plug the guitar adapter into the PS4.
 8. Fully close Rock Band 4 and start it again. Plugins only load when the
    game starts.
