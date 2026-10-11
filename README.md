@@ -1,6 +1,6 @@
 # USB Guitar Plugin: Use a PS2 Guitar in Rock Band 4 on PS4
 
-**Made by CoronaSend**
+**Made by CoronaSend** | [Join the Discord](https://discord.gg/mGRCKG9BB)
 
 A GoldHEN plugin that lets a **PS2 guitar on a generic PS2-to-USB adapter** work in **Rock Band 4** on a jailbroken PS4.
 
