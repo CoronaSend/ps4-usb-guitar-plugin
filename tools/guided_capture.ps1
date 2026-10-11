@@ -159,6 +159,6 @@ $utf8 = New-Object Text.UTF8Encoding $false
 Write-Host ''
 if ($r.Missing.Count) { Write-Host "WARNING: could not detect: $($r.Missing -join ', '). Send guitar_capture.txt to the plugin author." }
 Write-Host 'Done. Two files were saved on your Desktop:'
-Write-Host '  guitar_map.ini      -> put this on the PS4 in /data/GoldHEN/'
+Write-Host '  guitar_map.ini      -> now plug the adapter back into the PS4 and run 1_INSTALL.bat again (it uploads this file)'
 Write-Host '  guitar_capture.txt  -> keep, in case something needs fixing'
 Read-Host 'Press Enter to close'
