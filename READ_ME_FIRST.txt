@@ -48,5 +48,5 @@ PROBLEMS
 HONEST NOTES
   - Verified on one adapter and guitar (USB ID 2563:0575). Other adapters and
     guitars are untested; step 2 is how you teach it yours.
-  - Tilt (star power by tilting) is not supported. Use the Select button.
+  - Tilt (star power by tilting) does not work. Press the Select button on the guitar to activate star power instead.
   - Windows may show a SmartScreen warning for an unsigned program: More info > Run anyway.

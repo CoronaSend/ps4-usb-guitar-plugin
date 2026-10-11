@@ -55,7 +55,7 @@ static struct {
     bool loaded;
     bool has_id;
     uint16_t vid, pid;
-    MapEntry green, red, yellow, blue, orange, start, select, up, down;
+    MapEntry green, red, yellow, blue, orange, start, select, up, down, tilt;
     bool whammy_set;
     uint8_t wbyte, wrest, wfull;
     int max_byte;
@@ -131,6 +131,7 @@ static void LoadMapFile(void) {
             else if (strcmp(key, "select") == 0) SetEntry(&g_map.select, val);
             else if (strcmp(key, "strum_up") == 0) SetEntry(&g_map.up, val);
             else if (strcmp(key, "strum_down") == 0) SetEntry(&g_map.down, val);
+            else if (strcmp(key, "tilt") == 0) SetEntry(&g_map.tilt, val);
             else if (strcmp(key, "whammy") == 0) {
                 // "whammy=byte,rest,full"
                 if (ParseHexList(val, v, 3) == 3 && v[0] < 32 && v[1] != v[2]) {
@@ -270,6 +271,8 @@ static OIRB4DeviceType IdentifyDevice(libusb_device *device) {
 }
 
 #define BIT(i) (1 << i)
+// accel_x value sent while the guitar is tilted up (0x00 is level; matches the original plugin tilt mapping)
+#define TILT_UP 0x7F
 // TODO: this seems bad i dont even know if it do drum
 typedef struct _ps3_rb_guitar_report {
     uint16_t buttons;
@@ -341,7 +344,8 @@ static void ParseMappedPS2(struct libusb_transfer *transfer) {
     if (MapPressed(&g_map.yellow, raw)) parsed_report.buttons |= BIT(4);
     if (MapPressed(&g_map.blue, raw)) parsed_report.buttons |= BIT(2);
     if (MapPressed(&g_map.orange, raw)) parsed_report.buttons |= BIT(3);
-    if (MapPressed(&g_map.start, raw) || MapPressed(&g_map.select, raw)) parsed_report.buttons |= BIT(9);
+    if (MapPressed(&g_map.start, raw)) parsed_report.buttons |= BIT(9);
+    if (MapPressed(&g_map.select, raw)) parsed_report.buttons |= BIT(8); // back / star power
 
     parsed_report.hat = 0x08;
     if (MapPressed(&g_map.up, raw)) parsed_report.hat = 0x00;
@@ -352,7 +356,7 @@ static void ParseMappedPS2(struct libusb_transfer *transfer) {
         int v = ((int)raw[g_map.wbyte] - (int)g_map.wrest) * 255 / span;
         parsed_report.whammy = (uint8_t)(v < 0 ? 0 : (v > 255 ? 255 : v));
     }
-    parsed_report.accel_x = 0x80;
+    parsed_report.accel_x = MapPressed(&g_map.tilt, raw) ? TILT_UP : 0x00;
 
     size_t len = transfer->length < sizeof(parsed_report) ? transfer->length : sizeof(parsed_report);
     memcpy(transfer->buffer, &parsed_report, len);
@@ -372,15 +376,15 @@ void ParsePS2Callback(struct libusb_transfer *transfer) {
         if ((raw[0] & 0x01) != 0) parsed_report.buttons |= BIT(4); // yellow
         if ((raw[0] & 0x04) != 0) parsed_report.buttons |= BIT(2); // blue
         if ((raw[0] & 0x08) != 0) parsed_report.buttons |= BIT(3); // orange
-        if ((raw[1] & 0x03) != 0) parsed_report.buttons |= BIT(9); // start and select both act as start/options
+        if ((raw[1] & 0x02) != 0) parsed_report.buttons |= BIT(9); // start
+        if ((raw[1] & 0x01) != 0) parsed_report.buttons |= BIT(8); // select = back / star power
+        parsed_report.accel_x = (raw[0] & 0x40) ? TILT_UP : 0x00; // tilt switch
 
         parsed_report.hat = 0x08;
         if (raw[2] == 7) parsed_report.hat = 0x00; // strum up
         if (raw[2] == 5) parsed_report.hat = 0x04; // strum down
 
         parsed_report.whammy = (raw[4] >= 0x7F) ? 0x00 : (uint8_t)((0x7F - raw[4]) * 2);
-        parsed_report.accel_x = 0x80;
-
         size_t len = transfer->length < sizeof(parsed_report) ? transfer->length : sizeof(parsed_report);
         memcpy(transfer->buffer, &parsed_report, len);
     }

@@ -68,8 +68,9 @@ Delete the `OrbisInstrumentalizer.prx` line from `plugins.ini`, and delete the `
 | Green, Red, Yellow, Blue, Orange | Same color fret |
 | Strum up / down | Strum up / down |
 | Whammy bar | Whammy |
-| Start or Select | Options / Start (both do the same thing) |
-| Tilt | Not mapped |
+| Start | Options / Start |
+| Select | Back, which activates **star power** in a song (tested) |
+| Tilt | Not working: the adapter reports a tilt bit, but the game ignored it in tests. Use Select for star power. |
 
 ## Remapping
 
@@ -114,15 +115,6 @@ if ((raw[0] & 0x02) != 0) parsed_report.buttons |= BIT(0); // red
 if ((raw[0] & 0x04) != 0) parsed_report.buttons |= BIT(2); // blue
 ```
 
-### Example: make Select act as Back instead of Options
-
-Replace the Start/Select line with:
-
-```c
-if ((raw[1] & 0x01) != 0) parsed_report.buttons |= BIT(8); // select -> back
-if ((raw[1] & 0x02) != 0) parsed_report.buttons |= BIT(9); // start -> options
-```
-
 After any change, rebuild, copy the new `.prx` to the PS4, and **fully restart the game** (plugins only load at game launch).
 
 ## Different guitar or adapter: the mapping tool (no coding)
@@ -136,7 +128,7 @@ If the game detects your guitar but buttons do nothing, or you use another adapt
 
 The klog shows `Mapping file loaded (id VVVV:PPPP)` when it is used. With no map file, the built-in layout for the verified 2563:0575 adapter and guitar is used. Map file format is one `key=byte,mask,value` per line (hex); a button is pressed when `(report[byte] & mask) == value`. Keys: `green red yellow blue orange start select strum_up strum_down`, plus `whammy=byte,rest,full` and `id=VID,PID`.
 
-Tested: the generated layout for the 2563:0575 adapter and our guitar loads and works on a real PS4. Other adapters and guitars are untested. Tilt is not mapped, and the plugin still only supports Rock Band 4 version 02.21.
+Tested: the generated layout for the 2563:0575 adapter and our guitar loads and works on a real PS4, including Select as star power. Other adapters and guitars are untested. Tilt does not work (see above), and the plugin still only supports Rock Band 4 version 02.21.
 
 ## Using a different adapter (manual)
 
@@ -175,7 +167,7 @@ The result is `bin\OrbisInstrumentalizer.prx`.
 - **RB4DX stopped loading:** a new `plugins.ini` replaces GoldHEN's defaults. List every plugin you use under the heading, including `RB4DX-Plugin.prx`.
 - **Guitar not detected:** unplug the adapter, plug it into the PS4 **before** starting the game, and restart the game.
 - **A fret is the wrong color or a button does nothing:** see "Remapping".
-- **Menus can't be navigated with the guitar:** use a normal controller for menus. Start/Select work for Options only.
+- **Menus can't be navigated with the guitar:** use a normal controller for menus. Start works for Options only, and Select is Back.
 
 ## Credits and license
 
