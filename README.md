@@ -6,6 +6,17 @@ A GoldHEN plugin that lets a **PS2 guitar on a generic PS2-to-USB adapter** work
 
 Tested with a generic adapter (USB ID `2563:0575`) on a jailbroken PS4 with GoldHEN and Rock Band 4 version **02.21**, USA (`CUSA02084`), together with RB4DX.
 
+## What does this do?
+
+Rock Band 4 on PS4 only accepts official PS4 instruments (plus some PS3-era ones). An old PS2 guitar on a cheap PS2-to-USB adapter is not recognized, so the game ignores it.
+
+This plugin loads into Rock Band 4 through GoldHEN and sits between the game and the PS4's USB stack. When it sees the adapter, it:
+
+1. Makes the game think the adapter is a PS3 Rock Band guitar.
+2. Reads the adapter's raw button data and translates it into the format a PS3 Rock Band guitar sends (frets, strum, whammy, Start/Options).
+
+You then play with your PS2 guitar as if it were a supported guitar. Nothing on the PS4 is permanently changed, and removing the plugin restores normal behavior.
+
 ## Requirements
 
 - Jailbroken PS4 running GoldHEN (2.3.0 or newer) with the plugin loader enabled
