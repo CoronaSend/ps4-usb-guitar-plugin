@@ -389,7 +389,7 @@ static class Program
             dev = devs[pick - 1];
         }
         Say("Using: " + dev.Name + "  (USB ID " + dev.Id + ")");
-        var raw = new List<string>(); raw.Add("Device: " + dev.Name + " VID=" + dev.Vid.ToString("X4") + " PID=" + dev.Pid.ToString("X4") + " page=" + dev.Page + " usage=" + dev.Usage + " inlen=" + dev.InLen);
+        var raw = new List<string>();
         cap = new Dictionary<string, byte[]>();
         using (var r = new Reader(dev))
         {
@@ -424,9 +424,25 @@ static class Program
         }
         var problems = new List<string>();
         var lines = Mapper.Build(dev.Vid.ToString("X4"), dev.Pid.ToString("X4"), cap, problems);
+        string safeName = dev.Name.Replace("=", "-").Replace("\r", " ").Replace("\n", " ");
+        if (safeName.Length > 40) safeName = safeName.Substring(0, 40);
+        var mapText = new List<string>();
+        mapText.Add("# Guitar map made by GuitarTool for " + safeName + " on " + DateTime.Now.ToString("yyyy-MM-dd"));
+        mapText.Add("# Put this file at /data/GoldHEN/guitar_map.ini on the PS4. Each line: button, byte, mask, value (hex).");
+        mapText.AddRange(lines);
         string ini = Path.Combine(Desktop, "guitar_map.ini");
-        File.WriteAllText(ini, string.Join("\n", lines.ToArray()) + "\n", Utf8);
-        File.WriteAllText(Path.Combine(Desktop, "guitar_capture.txt"), string.Join("\n", raw.ToArray()) + "\n", Utf8);
+        File.WriteAllText(ini, string.Join("\r\n", mapText.ToArray()).Replace("\r\n", "\n") + "\n", Utf8);
+        var report = new List<string>();
+        report.Add("GuitarTool capture report - " + DateTime.Now.ToString("yyyy-MM-dd HH:mm"));
+        report.Add("Device: " + dev.Name + "   USB ID: " + dev.Id + "   report length: " + (dev.InLen - 1) + " bytes");
+        report.Add("");
+        report.Add("Raw reports (one per button, hex bytes):");
+        report.AddRange(raw);
+        report.Add("");
+        report.Add("Map that was generated:");
+        report.AddRange(lines);
+        if (problems.Count > 0) { report.Add(""); report.Add("Not detected:"); foreach (var p in problems) report.Add("  " + p); }
+        File.WriteAllText(Path.Combine(Desktop, "guitar_capture.txt"), string.Join("\n", report.ToArray()) + "\n", Utf8);
         Say("");
         Say("Saved on your Desktop:");
         Say("  guitar_map.ini      - the map file (exactly the name the PS4 needs)");
