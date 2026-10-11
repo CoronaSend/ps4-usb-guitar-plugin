@@ -513,13 +513,20 @@ static class Program
             {
                 Say("");
                 Say("==============================================");
-                Say("  GUITAR TOOL - Rock Band 4 on PS4 (GoldHEN)");
+                Say("  GUITAR TOOL - Rock Band 4 on PS4");
                 Say("==============================================");
-                Say("  1  INSTALL the plugin on my PS4            <-- start here");
-                Say("  2  MAKE A MAP for my guitar                 <-- only if buttons don't work after 1");
-                Say("  3  Exit");
                 Say("");
-                string c = Ask("Type 1, 2 or 3 and press Enter: ");
+                Say("  What do you want to do?");
+                Say("");
+                Say("  Type 1 = Put the guitar plugin on my PS4");
+                Say("           (do this first, the PS4 must be on and jailbroken)");
+                Say("");
+                Say("  Type 2 = My guitar's buttons are wrong or do nothing");
+                Say("           (plug the guitar into this PC, I will learn its buttons)");
+                Say("");
+                Say("  Type 3 = Close this program");
+                Say("");
+                string c = Ask("Type 1, 2 or 3, then press the Enter key: ");
                 try
                 {
                     if (c == "1") Install(null);
