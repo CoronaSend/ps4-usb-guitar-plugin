@@ -2,12 +2,12 @@ PS2 GUITAR FOR ROCK BAND 4 (PS4) - SETUP GUIDE
 ==============================================
 
 WHAT IS IN THIS ZIP
-- Put_On_PS4_GoldHEN_folder\OrbisInstrumentalizer.prx : the plugin (Part A)
-- Put_On_PS4_GoldHEN_folder\plugins_SAMPLE.ini        : example of the plugins.ini line
-- Put_On_PS4_GoldHEN_folder\guitar_map_EXAMPLE.ini    : example map file (do not use as-is)
-- Mapping_Tool\RUN_ME.bat                              : the PC mapping tool (Part B)
-- Source\                                              : source code and build script
-- LICENSE.txt, README.md                               : license and technical notes
+- PS4_Files\data\GoldHEN\plugins\OrbisInstrumentalizer.prx : the plugin. Its folder path
+  is exactly where it goes on the PS4: /data/GoldHEN/plugins/
+- Mapping_Tool\RUN_ME.bat        : the PC mapping tool (Part B). It creates guitar_map.ini
+- Examples_Do_Not_Copy\          : examples only. Do not put these on the PS4.
+- Source\                        : source code and build script
+- LICENSE.txt, README.md         : license and technical notes
 
 WHAT YOU NEED
 - A jailbroken PS4 running GoldHEN (FTP server enabled in the GoldHEN menu)
@@ -29,8 +29,8 @@ PART A - INSTALL THE PLUGIN
       Host: the PS4's IP address     Port: 2121
       Username/password: leave blank (or anything)
 4. On the PS4 side of FileZilla, go to /data/GoldHEN/plugins/
-5. Drag OrbisInstrumentalizer.prx (from the Put_On_PS4_GoldHEN_folder folder
-   of this download) into that folder.
+5. Drag OrbisInstrumentalizer.prx from PS4_Files\data\GoldHEN\plugins\ in
+   this download into that folder. Do not rename it.
    If a file with that name already exists, overwrite it.
 6. Go up one folder to /data/GoldHEN/ and open plugins.ini (right-click >
    View/Edit). Under the line [CUSA02084] there must be this line:
