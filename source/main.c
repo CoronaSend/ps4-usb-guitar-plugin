@@ -72,7 +72,7 @@ int32_t attr_module_hidden module_start(size_t argc, const void *args)
     for (int i = 0; i < num_UsbdHookTitleIDs; i++) {
         if (strcmp(procInfo.titleid, UsbdHookTitleIDs[i]) == 0) {
             final_printf("Applying sceUsbd hooks...\n");
-            DoNotification("USB Guitar Plugin\nMade by CoronaSend");
+            DoNotification("USB Guitar Plugin\nMade by CoronaSend\nDiscord: @CoronaSend");
             InitUsbdHooks();
             UsingUsbdHooks = true;
         }

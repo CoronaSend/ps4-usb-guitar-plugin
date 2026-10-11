@@ -47,7 +47,7 @@ You then play with your PS2 guitar as if it were a supported guitar. Nothing on 
 
    Don't replace an existing `plugins.ini` with the sample one in this folder. It exists only to show the format.
 5. **Plug the guitar adapter into the PS4 before launching the game.**
-6. Launch Rock Band 4. A "USB Guitar Plugin - Made by CoronaSend" notification means the plugin loaded.
+6. Launch Rock Band 4. A "USB Guitar Plugin - Made by CoronaSend - Discord: @CoronaSend" notification means the plugin loaded.
 
 ## Uninstall
 
@@ -140,10 +140,10 @@ You need a Windows PC with:
 - The [OpenOrbis PS4 Toolchain](https://github.com/OpenOrbis/OpenOrbis-PS4-Toolchain/releases) release, extracted
 - The [GoldHEN Plugins SDK](https://github.com/GoldHEN/GoldHEN_Plugins_SDK), cloned
 
-Then in PowerShell, from this folder:
+Then in PowerShell, from this folder (the bypass flag is needed if script execution is disabled):
 
 ```powershell
-.\build.ps1 -Toolchain "C:\path\to\OpenOrbis\PS4Toolchain" -GoldHenSdk "C:\path\to\GoldHEN_Plugins_SDK"
+powershell -ExecutionPolicy Bypass -File .\build.ps1 -Toolchain "C:\path\to\OpenOrbis\PS4Toolchain" -GoldHenSdk "C:\path\to\GoldHEN_Plugins_SDK"
 ```
 
 The result is `bin\OrbisInstrumentalizer.prx`.

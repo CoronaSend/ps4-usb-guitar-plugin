@@ -49,7 +49,10 @@ foreach ($f in Get-ChildItem "$root\source\*.c") {
 ld.lld "$GoldHenSdk\build\crtprx.o" (Get-ChildItem "$build\*.o").FullName -o "$bin\OrbisInstrumentalizer.elf" -m elf_x86_64 -pie --script "$Toolchain\link.x" -e _init --eh-frame-hdr "-L$Toolchain\lib" "-L$GoldHenSdk" -lGoldHEN_Hook -lkernel -lSceLibcInternal -lSceSysmodule -lSceUsbd
 if ($LASTEXITCODE) { throw 'Link failed' }
 
-cmd /c "`"$Toolchain\bin\windows\create-fself.exe`" -in=$bin\OrbisInstrumentalizer.elf -out=$bin\OrbisInstrumentalizer.oelf --lib=$bin\OrbisInstrumentalizer.prx --paid 0x3800000000000011"
+$env:OO_PS4_TOOLCHAIN = $Toolchain
+Push-Location $bin
+cmd /c "`"$Toolchain\bin\windows\create-fself.exe`" -in=OrbisInstrumentalizer.elf -out=OrbisInstrumentalizer.oelf --lib=OrbisInstrumentalizer.prx --paid 0x3800000000000011"
+Pop-Location
 if (-not (Test-Path "$bin\OrbisInstrumentalizer.prx")) { throw 'create-fself failed' }
 
 Remove-Item $shim -Recurse -Force
