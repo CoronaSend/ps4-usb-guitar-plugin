@@ -1,0 +1,81 @@
+PS2 GUITAR FOR ROCK BAND 4 (PS4) - SETUP GUIDE
+==============================================
+
+WHAT YOU NEED
+- A jailbroken PS4 running GoldHEN (FTP server enabled in the GoldHEN menu)
+- Rock Band 4, version 02.21 (US, title ID CUSA02084)
+- A PS2 guitar with a USB adapter (tested: adapter ID 2563:0575)
+- A Windows PC (only for step B, and only if your guitar does not work after step A)
+- An FTP program on the PC, for example FileZilla (free)
+
+The guide has two parts. Do PART A first. Only do PART B if the game sees
+your guitar but the buttons do nothing, or the buttons are wrong.
+
+
+PART A - INSTALL THE PLUGIN
+---------------------------
+1. Turn on the PS4 and run the jailbreak so GoldHEN loads.
+2. On the PS4, open the GoldHEN menu and make sure the FTP server is on.
+   Note the PS4's IP address (Settings > Network > View Connection Status).
+3. On the PC, open FileZilla and connect:
+      Host: the PS4's IP address     Port: 2121
+      Username/password: leave blank (or anything)
+4. On the PS4 side of FileZilla, go to /data/GoldHEN/plugins/
+5. Drag OrbisInstrumentalizer.prx from this download into that folder.
+   If a file with that name already exists, overwrite it.
+6. Go up one folder to /data/GoldHEN/ and open plugins.ini (right-click >
+   View/Edit). Under the line [CUSA02084] there must be this line:
+      /data/GoldHEN/plugins/OrbisInstrumentalizer.prx
+   If it is missing, add it on its own line under [CUSA02084] and save.
+   (Keep a copy of plugins.ini first in case you make a mistake.)
+7. Plug the guitar adapter into the PS4.
+8. Fully close Rock Band 4 and start it again. Plugins only load when the
+   game starts.
+9. Try the guitar in the menus. If it works, you are done.
+
+
+PART B - IF THE BUTTONS DO NOT WORK (make a map file)
+-----------------------------------------------------
+Different guitars and adapters send their buttons in different places. This
+step teaches the plugin yours.
+
+1. Unplug the guitar adapter from the PS4 and plug it into the Windows PC.
+2. Open the Mapping_Tool folder and double-click RUN_ME.bat.
+   (If Windows warns about it, click More info > Run anyway.)
+3. A black window opens. If it lists several devices, type the number of your
+   guitar adapter and press Enter.
+4. Put the guitar DOWN on a table and do not touch it. Press Enter.
+5. For each prompt (GREEN, RED, YELLOW, BLUE, ORANGE, STRUM UP, STRUM DOWN,
+   START, SELECT, WHAMMY):
+      - Press Enter.
+      - When it says HOLD NOW, hold only that one button for 3 seconds.
+      - Let go. Go to the next prompt.
+   Strum UP and strum DOWN are the two directions of the strum bar.
+   For WHAMMY, push the whammy bar all the way down and hold it.
+6. When it finishes, two files are on your Desktop:
+      guitar_map.ini       <- the one you need
+      guitar_capture.txt   <- keep it; send it to the author if it fails
+   If the window says "WARNING: could not detect: ...", repeat the tool and
+   make sure you hold that button the whole 3 seconds.
+7. Unplug the adapter from the PC and plug it back into the PS4.
+8. In FileZilla, connect to the PS4 as in Part A and drag guitar_map.ini into
+   /data/GoldHEN/   (the same folder as plugins.ini, NOT the plugins folder).
+9. Fully close Rock Band 4 and start it again.
+10. Test the guitar. It should work now.
+
+To go back to the built-in layout, delete /data/GoldHEN/guitar_map.ini and
+restart the game.
+
+
+IF IT STILL DOES NOT WORK
+- Check the game version is 02.21 (the plugin does nothing on other versions).
+- Check the plugin line is under [CUSA02084] in plugins.ini.
+- Check guitar_map.ini is in /data/GoldHEN/ and not in a sub-folder.
+- Make sure only ONE guitar adapter is plugged in.
+- Some adapters need a driver on Windows and may not work on the PS4.
+- Tilt (star power by tilting) is not supported; use the Select/Back button.
+- Ask for help on Discord: https://discord.gg/mGRCKG9BB  (@CoronaSend) and
+  attach guitar_capture.txt.
+
+Note: this has been verified on one adapter and guitar (2563:0575). Other
+adapters and guitars are untested, so reports are welcome.

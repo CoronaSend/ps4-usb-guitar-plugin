@@ -6,6 +6,8 @@ A GoldHEN plugin that lets a **PS2 guitar on a generic PS2-to-USB adapter** work
 
 Tested with a generic adapter (USB ID `2563:0575`) on a jailbroken PS4 with GoldHEN and Rock Band 4 version **02.21**, USA (`CUSA02084`), together with RB4DX.
 
+**Start here: read [SETUP_GUIDE.txt](SETUP_GUIDE.txt)** for step-by-step install and for what to do if your guitar's buttons don't work (Part B makes a map file with a PC tool).
+
 **Support status**
 - `2563:0575`: verified on real hardware.
 - `0810:0001` and `0810:0003` (other generic PS2 adapters): **untested.** They use the same button layout as the verified adapter. If your buttons come out wrong, your adapter's report differs. `tools\read_raw_report.ps1` prints the raw bytes, so you can report them.
