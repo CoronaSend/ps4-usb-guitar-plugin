@@ -6,6 +6,12 @@ A GoldHEN plugin that lets a **PS2 guitar on a generic PS2-to-USB adapter** work
 
 Tested with a generic adapter (USB ID `2563:0575`) on a jailbroken PS4 with GoldHEN and Rock Band 4 version **02.21**, USA (`CUSA02084`), together with RB4DX.
 
+**Support status**
+- `2563:0575`: verified on real hardware.
+- `0810:0001` and `0810:0003` (other generic PS2 adapters): **untested.** They use the same button layout as the verified adapter. If your buttons come out wrong, your adapter's report differs. `tools\read_raw_report.ps1` prints the raw bytes, so you can report them.
+- Only Rock Band 4 version **02.21** is supported. The plugin hooks fixed addresses in that build and does nothing on other versions.
+- Not tested without RB4DX.
+
 ## What does this do?
 
 Rock Band 4 on PS4 only accepts official PS4 instruments (plus some PS3-era ones). An old PS2 guitar on a cheap PS2-to-USB adapter is not recognized, so the game ignores it.
@@ -117,7 +123,20 @@ if ((raw[1] & 0x02) != 0) parsed_report.buttons |= BIT(9); // start -> options
 
 After any change, rebuild, copy the new `.prx` to the PS4, and **fully restart the game** (plugins only load at game launch).
 
-## Using a different adapter
+## Different guitar or adapter: the mapping tool (no coding)
+
+If the game detects your guitar but buttons do nothing, or you use another adapter, make a map file:
+
+1. Plug the adapter into a Windows PC and double-click `tools\RUN_ME.bat`.
+2. Follow the prompts: press Enter, then hold each button for 3 seconds. Keep the guitar still while it records the idle state.
+3. It saves `guitar_map.ini` (and `guitar_capture.txt`) to your Desktop.
+4. Copy `guitar_map.ini` to `/data/GoldHEN/` on the PS4 (next to `plugins.ini`) and fully restart the game.
+
+The klog shows `Mapping file loaded (id VVVV:PPPP)` when it is used. With no map file, the built-in layout for the verified 2563:0575 adapter and guitar is used. Map file format is one `key=byte,mask,value` per line (hex); a button is pressed when `(report[byte] & mask) == value`. Keys: `green red yellow blue orange start select strum_up strum_down`, plus `whammy=byte,rest,full` and `id=VID,PID`.
+
+Tested: the generated layout for the 2563:0575 adapter and our guitar loads and works on a real PS4. Other adapters and guitars are untested. Tilt is not mapped, and the plugin still only supports Rock Band 4 version 02.21.
+
+## Using a different adapter (manual)
 
 1. Plug the adapter into a Windows PC, then run `tools\read_raw_report.ps1`:
 

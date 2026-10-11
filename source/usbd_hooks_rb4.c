@@ -27,9 +27,138 @@ typedef enum _OIRB4DeviceType {
     RB4_Type_PS2Guitar
 } OIRB4DeviceType;
 
-// generic PS2-to-USB adapter (ShanWan style) with a PS2 guitar plugged in
-#define PS2_ADAPTER_VID 0x2563
-#define PS2_ADAPTER_PID 0x0575
+// generic PS2-to-USB adapters with a PS2 guitar plugged in
+// 2563:0575 (ShanWan style) is verified on hardware.
+// The others are generic PS2 adapters taken from SDL's controller list and are UNTESTED:
+// they use the same parser, so buttons may be wrong if their report layout differs.
+typedef struct _PS2AdapterId {
+    uint16_t vid;
+    uint16_t pid;
+} PS2AdapterId;
+
+static const PS2AdapterId ps2_adapters[] = {
+    { 0x2563, 0x0575 }, // verified
+    { 0x0810, 0x0001 }, // untested
+    { 0x0810, 0x0003 }, // untested
+};
+
+// Optional mapping file made by the PC capture tool (tools\guided_capture.ps1).
+// Each button is "byte,mask,value" in hex: pressed when (report[byte] & mask) == value.
+// With no file present, the built-in mapping for the verified adapter is used.
+#define MAP_PATH "/data/GoldHEN/guitar_map.ini"
+typedef struct _MapEntry {
+    bool set;
+    uint8_t byte, mask, val;
+} MapEntry;
+
+static struct {
+    bool loaded;
+    bool has_id;
+    uint16_t vid, pid;
+    MapEntry green, red, yellow, blue, orange, start, select, up, down;
+    bool whammy_set;
+    uint8_t wbyte, wrest, wfull;
+    int max_byte;
+} g_map;
+
+static int HexVal(char c) {
+    if (c >= '0' && c <= '9') return c - '0';
+    if (c >= 'a' && c <= 'f') return c - 'a' + 10;
+    if (c >= 'A' && c <= 'F') return c - 'A' + 10;
+    return -1;
+}
+
+// parses up to 3 comma-separated hex numbers, returns how many were read
+static int ParseHexList(const char *s, unsigned *out, int max) {
+    int n = 0;
+    while (*s && *s != '\n' && *s != '\r' && n < max) {
+        unsigned v = 0;
+        int digits = 0;
+        while (HexVal(*s) >= 0) { v = (v << 4) | (unsigned)HexVal(*s); s++; digits++; }
+        if (digits == 0) break;
+        out[n++] = v;
+        if (*s == ',') s++;
+        else break;
+    }
+    return n;
+}
+
+static void SetEntry(MapEntry *e, const char *val) {
+    unsigned v[3];
+    if (ParseHexList(val, v, 3) == 3 && v[0] < 32) {
+        e->set = true;
+        e->byte = (uint8_t)v[0];
+        e->mask = (uint8_t)v[1];
+        e->val = (uint8_t)v[2];
+        if ((int)v[0] > g_map.max_byte) g_map.max_byte = (int)v[0];
+    }
+}
+
+static void LoadMapFile(void) {
+    char text[1024];
+    int fd = sceKernelOpen(MAP_PATH, 0, 0);
+    if (fd < 0)
+        return;
+    int len = (int)sceKernelRead(fd, text, sizeof(text) - 1);
+    sceKernelClose(fd);
+    if (len <= 0)
+        return;
+    text[len] = 0;
+
+    memset(&g_map, 0, sizeof(g_map));
+    g_map.max_byte = -1;
+    char *line = text;
+    while (*line) {
+        char *eol = line;
+        while (*eol && *eol != '\n') eol++;
+        char saved = *eol;
+        *eol = 0;
+        char *eq = line;
+        while (*eq && *eq != '=') eq++;
+        if (*eq == '=') {
+            *eq = 0;
+            const char *key = line, *val = eq + 1;
+            unsigned v[3];
+            if (strcmp(key, "id") == 0) {
+                // "id=VID,PID"
+                if (ParseHexList(val, v, 2) == 2) { g_map.has_id = true; g_map.vid = (uint16_t)v[0]; g_map.pid = (uint16_t)v[1]; }
+            } else if (strcmp(key, "green") == 0) SetEntry(&g_map.green, val);
+            else if (strcmp(key, "red") == 0) SetEntry(&g_map.red, val);
+            else if (strcmp(key, "yellow") == 0) SetEntry(&g_map.yellow, val);
+            else if (strcmp(key, "blue") == 0) SetEntry(&g_map.blue, val);
+            else if (strcmp(key, "orange") == 0) SetEntry(&g_map.orange, val);
+            else if (strcmp(key, "start") == 0) SetEntry(&g_map.start, val);
+            else if (strcmp(key, "select") == 0) SetEntry(&g_map.select, val);
+            else if (strcmp(key, "strum_up") == 0) SetEntry(&g_map.up, val);
+            else if (strcmp(key, "strum_down") == 0) SetEntry(&g_map.down, val);
+            else if (strcmp(key, "whammy") == 0) {
+                // "whammy=byte,rest,full"
+                if (ParseHexList(val, v, 3) == 3 && v[0] < 32 && v[1] != v[2]) {
+                    g_map.whammy_set = true;
+                    g_map.wbyte = (uint8_t)v[0];
+                    g_map.wrest = (uint8_t)v[1];
+                    g_map.wfull = (uint8_t)v[2];
+                    if ((int)v[0] > g_map.max_byte) g_map.max_byte = (int)v[0];
+                }
+            }
+        }
+        *eol = saved;
+        if (!saved) break;
+        line = eol + 1;
+    }
+    g_map.loaded = g_map.green.set && g_map.red.set && g_map.yellow.set && g_map.blue.set && g_map.orange.set;
+    klog("[OrbisInstrumentalizer] Mapping file %s (id %04x:%04x)\n", g_map.loaded ? "loaded" : "incomplete, ignored", g_map.vid, g_map.pid);
+}
+
+static bool IsPS2AdapterId(uint16_t vid, uint16_t pid) {
+    if (g_map.loaded && g_map.has_id && g_map.vid == vid && g_map.pid == pid)
+        return true;
+    for (size_t i = 0; i < sizeof(ps2_adapters) / sizeof(ps2_adapters[0]); i++) {
+        if (ps2_adapters[i].vid == vid && ps2_adapters[i].pid == pid)
+            return true;
+    }
+    return false;
+}
 
 typedef struct _OIRB4OpenDevice {
     bool is_open;
@@ -197,8 +326,42 @@ void ParseXInputCallback(struct libusb_transfer *transfer) {
 //   [1] bit0 select, bit1 start
 //   [2] hat: 6 = idle, 5 = strum down, 7 = strum up
 //   [4] whammy axis: 0x7F at rest, 0x00 fully pressed
+static bool MapPressed(const MapEntry *e, const uint8_t *raw) {
+    return e->set && (raw[e->byte] & e->mask) == e->val;
+}
+
+static void ParseMappedPS2(struct libusb_transfer *transfer) {
+    uint8_t raw[32] = { 0 };
+    int n = transfer->actual_length < (int)sizeof(raw) ? transfer->actual_length : (int)sizeof(raw);
+    memcpy(raw, transfer->buffer, n);
+    ps3_rb_guitar_report parsed_report = { 0 };
+
+    if (MapPressed(&g_map.green, raw)) parsed_report.buttons |= BIT(1);
+    if (MapPressed(&g_map.red, raw)) parsed_report.buttons |= BIT(0);
+    if (MapPressed(&g_map.yellow, raw)) parsed_report.buttons |= BIT(4);
+    if (MapPressed(&g_map.blue, raw)) parsed_report.buttons |= BIT(2);
+    if (MapPressed(&g_map.orange, raw)) parsed_report.buttons |= BIT(3);
+    if (MapPressed(&g_map.start, raw) || MapPressed(&g_map.select, raw)) parsed_report.buttons |= BIT(9);
+
+    parsed_report.hat = 0x08;
+    if (MapPressed(&g_map.up, raw)) parsed_report.hat = 0x00;
+    else if (MapPressed(&g_map.down, raw)) parsed_report.hat = 0x04;
+
+    if (g_map.whammy_set) {
+        int span = (int)g_map.wfull - (int)g_map.wrest;
+        int v = ((int)raw[g_map.wbyte] - (int)g_map.wrest) * 255 / span;
+        parsed_report.whammy = (uint8_t)(v < 0 ? 0 : (v > 255 ? 255 : v));
+    }
+    parsed_report.accel_x = 0x80;
+
+    size_t len = transfer->length < sizeof(parsed_report) ? transfer->length : sizeof(parsed_report);
+    memcpy(transfer->buffer, &parsed_report, len);
+}
+
 void ParsePS2Callback(struct libusb_transfer *transfer) {
-    if (transfer->status == LIBUSB_TRANSFER_COMPLETED && transfer->actual_length >= 7) {
+    if (transfer->status == LIBUSB_TRANSFER_COMPLETED && g_map.loaded && transfer->actual_length > g_map.max_byte) {
+        ParseMappedPS2(transfer);
+    } else if (transfer->status == LIBUSB_TRANSFER_COMPLETED && !g_map.loaded && transfer->actual_length >= 7) {
         uint8_t raw[8];
         memcpy(raw, transfer->buffer, sizeof(raw));
         ps3_rb_guitar_report parsed_report = { 0 };
@@ -302,7 +465,7 @@ int TsceUsbdGetDeviceDescriptor_hook(libusb_device *device, struct libusb_device
             }
         }
 
-        if (desc->idVendor == PS2_ADAPTER_VID && desc->idProduct == PS2_ADAPTER_PID) {
+        if (IsPS2AdapterId(desc->idVendor, desc->idProduct)) {
             RegisterPS2Device(device);
             desc->idVendor = 0x12BA; // licensed by SCEA
             desc->idProduct = 0x0200; // PS3 Rock Band guitar
@@ -350,6 +513,7 @@ void TsceUsbdFillInterruptTransfer_hook(struct libusb_transfer *transfer, libusb
 void InitUsbdHooks() {
     // make sure we have the USBD module loaded into memory
     sceSysmoduleLoadModule(ORBIS_SYSMODULE_USBD);
+    LoadMapFile();
     struct proc_info procInfo;
     sys_sdk_proc_info(&procInfo);
 
