@@ -6,6 +6,8 @@
 # Double-click RUN_ME.bat to start it.
 param([switch]$SelfTest)
 
+trap { Write-Host ''; Write-Host "ERROR: $($_.Exception.Message)"; Write-Host $_.ScriptStackTrace; Read-Host 'Press Enter to close'; exit 1 }
+
 function ToBytes($s) { [byte[]]($s -split ' ' | Where-Object { $_ } | ForEach-Object { [Convert]::ToByte($_, 16) }) }
 function Hx($v) { '{0:x}' -f $v }
 function PopCount($v) { $n = 0; while ($v) { $n += $v -band 1; $v = $v -shr 1 }; $n }
