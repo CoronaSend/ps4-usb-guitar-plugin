@@ -1,4 +1,4 @@
-# USB Guitar Plugin for Rock Band 4 (PS4)
+# USB Guitar Plugin: Use a PS2 Guitar in Rock Band 4 on PS4
 
 **Made by CoronaSend**
 
